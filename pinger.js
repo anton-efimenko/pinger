@@ -47,23 +47,46 @@ function PNGEncoder(rawBytes, imgHeigth, imgWidth) {
     var IDAT = 'IDAT'
                .writeByte(0x18) // zlib compression (deflate)    
                .writeByte(0x57); // addional flags
-               .writeByte(1) // final block, raw data (no compression)
-               .write2BytesLSB(pixelDataLength)
-               .write2BytesLSB(~pixelDataLength);
+    
+    //Calculate amount of blocks
+    var amoutOfBlocks = Math.floor(pixelDataLength / 0xffff)+1;
 
-    var pixelData = '',
-        counter = 0;
-    for (var i = 0; i < imgHeigth; ++i) {
-        pixelData = pixelData.writeByte(0); // no filter
-        for (var j = 0; j < imgWidth; ++j) {
-            pixelData = pixelData.writeByte(rawBytes[counter++])  // r
-                                 .writeByte(rawBytes[counter++])  // g
-                                 .writeByte(rawBytes[counter++]); // b
-                               //.writeByte(rawBytes[counter++]); // a
-                                 counter++;
+    counter = 0;
+    for (var blockCounter = 1; blockCounter <= amoutOfBlocks; ++blockCounter) {
+    var pixelData = '';
+        if (blockCounter == amoutOfBlocks) {
+            var blockLen = pixelDataLength - (blockCounter-1) * 0xffff;
+            IDAT = IDAT.writeByte(1);
+        } else {
+            var blockLen = 0xffff;
+            IDAT = IDAT.writeByte(0)
         }
+        IDAT = IDAT.write2BytesLSB(blockLen)
+                   .write2BytesLSB(~blockLen);
+
+        while (pixelData.length < blockLen) {
+            if (!((counter/4) % imgWidth)) {
+                pixelData = pixelData.writeByte(0); // no filter
+            }
+            if (!((counter+1) % 4)) {
+                ++counter;
+            } else {
+                pixelData = pixelData.writeByte(rawBytes[counter++]);
+            } 
+        }
+/*
+        for (var i = 0; i < imgHeigth; ++i) {
+            pixelData = pixelData.writeByte(0); // no filter
+            for (var j = 0; j < imgWidth; ++j) {
+                pixelData = pixelData.writeByte(rawBytes[counter++])  // r
+                                     .writeByte(rawBytes[counter++])  // g
+                                     .writeByte(rawBytes[counter++]); // b
+                                   //.writeByte(rawBytes[counter++]); // a
+                                     counter++;
+            }
+        }*/
+        IDAT += pixelData;
     }
-    IDAT += pixelData;
 
     IEND = 'IEND';
     
