@@ -7,6 +7,10 @@
 *
 */
 
+/**
+* Bunch of functions to operate string as a byte stream
+* Takes integer, converts and append it to string
+*/ 
 String.prototype.writeByte = function (w) {
     // cut 8 bits: w & 0000000011111111
     return this + String.fromCharCode(w & 0xff);
@@ -25,24 +29,26 @@ String.prototype.write2BytesLSB = function (w) {
 }
 
 /**
-* 
-* @param rawBytes - array of bytes: [r, g, b, a, r, g, b, a, ...]
+* Encoder 
+* @param rawBytes  - array of bytes: [r, g, b, a, r, g, b, a, ...]
+* @param imgHeight - height of given image
+* @param imgWidth  - width of given image
 * @return base64 encoded png image data
 */
-function PNGEncoder(rawBytes, imgHeigth, imgWidth) {
+function PNGEncoder(rawBytes, imgHeight, imgWidth) {
     // Create output stream with png signature
     var pngSignature = '\211PNG\r\n\032\n';
     
     // Create IHDR chunk
     var IHDR = 'IHDR'
-               .write4Bytes(imgWidth).write4Bytes(imgHeigth)
+               .write4Bytes(imgWidth).write4Bytes(imgHeight)
                .writeByte(8) // bit depth per channel
                .writeByte(2) // color type: RGB
                .writeByte(0) // compression method
                .writeByte(0) // filter method
                .writeByte(0); // interlace method 
     
-    var pixelDataLength = (imgHeigth*imgWidth*3)+imgHeigth; // include filter to each line 
+    var pixelDataLength = (imgHeight*imgWidth*3)+imgHeight; // include filter to each line 
     // Create IDAT chunk
     var IDAT = 'IDAT'
                .writeByte(0x18) // zlib compression (deflate)    
@@ -153,9 +159,13 @@ function toBase64(str) {
     return r;
 }
 
+/**
+* Helper function to check if your browser supports toDataUrl canvas mathod
+*/
+var debug = false;
 function load() {
     var canvas = document.createElement("canvas");
-    if (1){//!canvas.toDataURL("image/png").indexOf("data:image/png")) {
+    if (!canvas.toDataURL("image/png").indexOf("data:image/png") || debug) {
         /**
         * Implement toDataUrl canvas method so it can be called on Android device
         */
