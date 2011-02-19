@@ -74,18 +74,7 @@ function PNGEncoder(rawBytes, imgHeigth, imgWidth) {
                 pixelData = pixelData.writeByte(rawBytes[counter++]);
             } 
         }
-/*
-        for (var i = 0; i < imgHeigth; ++i) {
-            pixelData = pixelData.writeByte(0); // no filter
-            for (var j = 0; j < imgWidth; ++j) {
-                pixelData = pixelData.writeByte(rawBytes[counter++])  // r
-                                     .writeByte(rawBytes[counter++])  // g
-                                     .writeByte(rawBytes[counter++]); // b
-                                   //.writeByte(rawBytes[counter++]); // a
-                                     counter++;
-            }
-        }*/
-        IDAT += pixelData;
+       IDAT += pixelData;
     }
 
     IEND = 'IEND';
